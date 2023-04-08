@@ -1,0 +1,168 @@
+ AS V1.42 Beta [Bld 240] - Source File kz80-lcd-test.asm - Page 1 - 04/08/23 20:00:41
+
+
+       1/       0 :                     ;
+       2/       0 :                     ; キャラクタLCDテスト for KZ80-LCD
+       3/       0 :                     ;
+       4/       0 :                         CPU Z80
+       5/       0 :                     
+       6/       0 : =80H                 LCD_CTL_WR   EQU 080h
+       7/       0 : =81H                 LCD_DATA_WR   EQU 081h
+       8/       0 : =82H                 LCD_CTL_RD   EQU 082h
+       9/       0 : =83H                 LCD_DATA_RD   EQU 083h
+      10/       0 :                     
+      11/    9000 :                         org 9000h
+      12/    9000 :                     
+      13/    9000 :                     START:
+      14/    9000 : CD 09 90                call lcd_init
+      15/    9003 : CD 1F 90                call lcd_print
+      16/    9006 : C3 00 00                JP   0
+      17/    9009 :                     
+      18/    9009 :                     ;--------------------
+      19/    9009 :                     ; LCD初期化
+      20/    9009 :                     ;--------------------
+      21/    9009 :                     lcd_init:
+      22/    9009 : 21 5C 90                LD  HL,lcd_init_str
+      23/    900C : 06 03                   LD  b,lcd_init_len
+      24/    900E : 0E 80                   LD  c,LCD_CTL_WR
+      25/    9010 :                     .lcd_init_loop
+      26/    9010 : 7E                      LD  A,(HL)
+      27/    9011 : ED 79                   OUT (c),A
+      28/    9013 : CD 49 90                call wait100
+      29/    9016 : 23                      INC HL
+      30/    9017 : 05                      DEC b
+      31/    9018 : C2 10 90                JP NZ,.lcd_init_loop
+      32/    901B : CD 49 90                call wait100
+      33/    901E : C9                      ret
+      34/    901F :                     
+      35/    901F :                     ;--------------------
+      36/    901F :                     ; LCDへメッセージ表示
+      37/    901F :                     ;--------------------
+      38/    901F :                     lcd_print:
+      39/    901F : 21 5F 90                LD   HL,lcd_print_str1
+      40/    9022 : 06 10                   LD   B,lcd_str_len1
+      41/    9024 : CD 33 90                call lcd_line_print
+      42/    9027 :                     ;
+      43/    9027 : CD 41 90                call lcd_nextline
+      44/    902A :                     ;
+      45/    902A : 21 6F 90                LD   HL,lcd_print_str2
+      46/    902D : 06 10                   LD   B,lcd_str_len2
+      47/    902F : CD 33 90                call lcd_line_print
+      48/    9032 : C9                      ret
+      49/    9033 :                     
+      50/    9033 :                     ;--------------------
+      51/    9033 :                     ; LCD文字列表示
+      52/    9033 :                     ;--------------------
+      53/    9033 :                     lcd_line_print:
+      54/    9033 : 0E 81                   LD  C,LCD_DATA_WR
+      55/    9035 :                     .lcd_loop
+      56/    9035 : 7E                      LD  A,(HL)
+      57/    9036 : ED 79                   OUT (c),A
+      58/    9038 : CD 49 90                call wait100
+      59/    903B : 23                      INC HL
+      60/    903C : 05                      DEC b
+ AS V1.42 Beta [Bld 240] - Source File kz80-lcd-test.asm - Page 2 - 04/08/23 20:00:41
+
+
+      61/    903D : C2 35 90                JP NZ,.lcd_loop
+      62/    9040 : C9                      ret
+      63/    9041 :                     
+      64/    9041 :                     ;--------------------
+      65/    9041 :                     ; LCD 2行目へ
+      66/    9041 :                     ;--------------------
+      67/    9041 : =0C0H                lcd_next_data   equ 0C0h
+      68/    9041 :                     ;
+      69/    9041 :                     lcd_nextline:
+      70/    9041 : 3E C0                   LD  A,lcd_next_data
+      71/    9043 : D3 80                   out (LCD_CTL_WR),A
+      72/    9045 : CD 49 90                call wait100
+      73/    9048 : C9                      ret
+      74/    9049 :                     
+      75/    9049 :                     
+      76/    9049 :                     ;--------------------
+      77/    9049 :                     ; WAIT-100
+      78/    9049 :                     ;--------------------
+      79/    9049 :                     wait100:
+      80/    9049 : C5                      PUSH BC
+      81/    904A : 06 FF                   LD B,255
+      82/    904C : CD 51 90                call wait
+      83/    904F : C1                      POP BC
+      84/    9050 : C9                      ret
+      85/    9051 :                     
+      86/    9051 :                     
+      87/    9051 :                     ;--------------------
+      88/    9051 :                     ; WAIT-1
+      89/    9051 :                     ;--------------------
+      90/    9051 :                     wait:
+      91/    9051 : 00                      NOP
+      92/    9052 : 00                      NOP
+      93/    9053 : 00                      NOP
+      94/    9054 : 00                      NOP
+      95/    9055 : 00                      NOP
+      96/    9056 : 00                      NOP
+      97/    9057 : 05                      DEC B
+      98/    9058 : C2 51 90                JP NZ,wait
+      99/    905B : C9                      ret
+     100/    905C :                     
+     101/    905C :                     
+     102/    905C :                     ;
+     103/    905C : 3C 0F 01            lcd_init_str     DB  03ch,0fh,01h
+     104/    905F : =3H                  lcd_init_len     equ $-lcd_init_str
+     105/    905F :                     ;
+     106/    905F : 48 65 6C 6C 6F 20   lcd_print_str1   DB  "Hello LCD SC1602"
+             9065 : 4C 43 44 20 53 43 
+             906B : 31 36 30 32       
+     107/    906F : =10H                 lcd_str_len1     equ $-lcd_print_str1
+     108/    906F :                     ;
+     109/    906F : 20 20 66 6F 72 20   lcd_print_str2   DB  "  for KZ80-LCD  "
+             9075 : 4B 5A 38 30 2D 4C 
+             907B : 43 44 20 20       
+     110/    907F : =10H                 lcd_str_len2     equ $-lcd_print_str2
+     111/    907F :                     
+ AS V1.42 Beta [Bld 240] - Source File kz80-lcd-test.asm - Page 3 - 04/08/23 20:00:41
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+*ARCHITECTURE :                                      "x86_64-unknown-linux" - |
+*CASESENSITIVE :                  0 - | *CONSTPI :        3.141592653589793 - |
+*DATE :                  "04/08/23" - | *FALSE :                          0 - |
+*FULLPMMU :                       1 - | *HAS64 :                          1 - |
+*HASFPU :                         0 - | *HASPMMU :                        0 - |
+*INSUPMODE :                      0 - | *LCD_CTL_RD :                    82 - |
+ LCD_CTL_WR :                    80 - | *LCD_DATA_RD :                   83 - |
+ LCD_DATA_WR :                   81 - |  LCD_INIT :                    9009 C |
+ LCD_INIT.LCD_INIT_LOOP :      9010 C |  LCD_INIT_LEN :                   3 - |
+ LCD_INIT_STR :                905C C |  LCD_LINE_PRINT :              9033 C |
+ LCD_LINE_PRINT.LCD_LOOP :     9035 C |  LCD_NEXTLINE :                9041 C |
+ LCD_NEXT_DATA :                0C0 - |  LCD_PRINT :                   901F C |
+ LCD_PRINT_STR1 :              905F C |  LCD_PRINT_STR2 :              906F C |
+ LCD_STR_LEN1 :                  10 - |  LCD_STR_LEN2 :                  10 - |
+*LISTON :                         1 - | *MACEXP :                         7 - |
+*MOMCPU :                        80 - | *MOMCPUNAME :                 "Z80" - |
+*NESTMAX :                      100 - | *PADDING :                        1 - |
+*RELAXED :                        0 - | *START :                       9000 C |
+*TIME :                  "20:00:41" - | *TRUE :                           1 - |
+*VERSION :                     142F - |  WAIT :                        9051 C |
+ WAIT100 :                     9049 C |
+
+     40 symbols
+     23 unused symbols
+
+ AS V1.42 Beta [Bld 240] - Source File kz80-lcd-test.asm - Page 4 - 04/08/23 20:00:41
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+
+0.00 seconds assembly time
+
+    111 lines source file
+      2 passes
+      0 errors
+      0 warnings
